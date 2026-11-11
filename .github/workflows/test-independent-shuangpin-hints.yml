@@ -1,0 +1,22 @@
+name: Test independent Shuangpin hint assembly
+on:
+  push:
+    branches: [ci/shuangpin-hints-independent]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: archlinux:latest
+    steps:
+      - name: Install build dependencies
+        run: pacman -Syu --noconfirm gcc cmake ninja git fcitx5 libime
+      - uses: actions/checkout@v4
+      - name: Show installed library versions
+        run: pacman -Q fcitx5 libime
+      - name: Build against distribution libraries
+        run: cmake -S .ci-shuangpin-hints -B build-hints -G Ninja && cmake --build build-hints
+      - name: Run native regression tests
+        run: ctest --test-dir build-hints --output-on-failure
